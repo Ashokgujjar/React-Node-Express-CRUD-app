@@ -1,12 +1,16 @@
-import React, { Component } from 'react';
 import axios from 'axios';
-import { Table } from 'react-bootstrap';
+import React, { Component } from 'react';
+import { Table, Button } from 'react-bootstrap';
 import './App.css';
+import EditEmployee from './EditEmployee';
 
 class EmployeeList extends Component {
-  state = {
-    employees: []
-  };
+
+  constructor(...args) {
+    super(...args);
+
+    this.state = { employees: [], modalShow: false };
+  }
 
   componentDidMount() {
     axios.get(`/employeeapi/employees`)
@@ -16,6 +20,7 @@ class EmployeeList extends Component {
   }
 
   render() {
+    let modalClose = () => this.setState({ modalShow: false });
 
     return (
       <div className='Emplist'>
@@ -40,12 +45,18 @@ class EmployeeList extends Component {
                   <td>{employee.address}</td>
                   <td>{employee.position}</td>
                   <td>{employee.salary}</td>
+                  <td><Button onClick={() => this.setState({ modalShow: true })}>Edit</Button>&nbsp;<Button>Delete</Button></td>
                 </tr>
               );
             })
           }
           </tbody>
         </Table>
+      
+        <EditEmployee
+          show={this.state.modalShow}
+          onHide={modalClose}
+        />
       </div>
     );
   }
