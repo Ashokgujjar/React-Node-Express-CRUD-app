@@ -6,10 +6,11 @@ import EditEmployee from './EditEmployee';
 
 class EmployeeList extends Component {
 
-  constructor(...args) {
-    super(...args);
-
-    this.state = { employees: [], modalShow: false };
+  constructor(props) {
+    super(props);
+    this.state = { employees: [], modalShow: false, selectedEmployee: {} };
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -17,6 +18,38 @@ class EmployeeList extends Component {
       .then(res => {
         this.setState({ employees: res.data });
       });
+  }
+
+  handleChange(event) {
+    let employee = this.state.selectedEmployee;
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    employee[name] = value;
+
+    this.setState({
+      selectedEmployee: employee
+    });
+  }
+
+  handleSubmit(event){
+    
+    const {selectedEmployee: employee} = this.state;
+    console.log(employee);
+    event.preventDefault();
+    let response = axios.put(`/employeeapi/employee/${employee._id}`, employee)
+    .then(function (response) {
+      return response;
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+    if(response){
+      console.log(response);
+      this.props.toggleAlertMessage({showMessage:true, varient:"success", message:"Data Updated Successfully!"});
+    }
   }
 
   render() {
@@ -37,25 +70,28 @@ class EmployeeList extends Component {
           </thead>
           <tbody>
             {
-              this.state.employees.map((employee, key)=>{
-              return (
-                <tr key={key}>
-                  <td>{key}</td>
-                  <td>{employee.name}</td>
-                  <td>{employee.address}</td>
-                  <td>{employee.position}</td>
-                  <td>{employee.salary}</td>
-                  <td><Button onClick={() => this.setState({ modalShow: true })}>Edit</Button>&nbsp;<Button>Delete</Button></td>
-                </tr>
-              );
-            })
-          }
+              this.state.employees.map((employee, key) => {
+                return (
+                  <tr key={key}>
+                    <td>{key}</td>
+                    <td>{employee.name}</td>
+                    <td>{employee.address}</td>
+                    <td>{employee.position}</td>
+                    <td>{employee.salary}</td>
+                    <td><Button onClick={() => this.setState({ modalShow: true, selectedEmployee: employee })}>Edit</Button>&nbsp;<Button>Delete</Button></td>
+                  </tr>
+                );
+              })
+            }
           </tbody>
         </Table>
-      
+
         <EditEmployee
+          employee={this.state.selectedEmployee || {}}
           show={this.state.modalShow}
           onHide={modalClose}
+          handleChange={this.handleChange}
+          handleSubmit={this.handleSubmit}
         />
       </div>
     );
